@@ -15,3 +15,7 @@ It's a Webapp for explorer a MongoDB and an API for interrogate him.
 * User/Group Accounts
 * Rights on Database/Collection
 * Api with APIKEY;
+
+
+#### Me ####
+Sorry for this Code, try to be better ...
