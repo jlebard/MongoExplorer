@@ -38,6 +38,29 @@ function jsoncodeeditor_(json,id) {
 
 }
 
+
+function jsonHTMLparser(data){
+
+
+    myjsonformatted =  JSON.stringify(data,null,'&emsp;');
+    text = myjsonformatted.replace(/\"\,/g,'&quot;,<br/>')
+            .replace(/\"/g,"&quot;")
+            .replace(/\: {/g,': {<br/>')
+
+            .replace(/&emsp;},/g,'<br/>&emsp;},<br>')
+            .replace(/&emsp;&emsp;},/g,'<br/>&emsp;&emsp;},<br>')
+            .replace(/&emsp;&emsp;&emsp;},/g,'<br/>&emsp;&emsp;&emsp;},<br>')
+            .replace(/ }/g,'<br/>}')
+            .replace(/  }/g,'<br/>}')
+    ;
+    return text;
+
+
+
+}
+
+
+
 function humanFileSize(bytes, si) {
     var thresh = si ? 1000 : 1024;
     if(Math.abs(bytes) < thresh) {
