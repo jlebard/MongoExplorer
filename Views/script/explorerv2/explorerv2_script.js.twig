@@ -1,0 +1,815 @@
+
+
+var test = $('strong.select2-results__group');
+$('.select2-results__option').children().prepend('<span class="mif-database"></span>');
+
+{% embed 'script/explorerv2/graphicsform.js.twig' %}
+{% endembed %}
+
+{% embed 'script/default_script.js.twig' %}
+{% endembed %}
+
+{% embed 'script/editor/editor_script.js.twig' %}
+{% endembed %}
+
+
+
+
+
+
+function ajaxAPI(url){
+    $.ajax({
+        url:'{{ path('index.api') }}'+url,
+        success: function(j){
+            json = $.parseJSON(j);
+
+            if(json.message== true){
+                $.Notify({
+                    caption: 'Success',
+                    content: 'Action Success ! ',
+                    icon: "<span class='mif-checkmark'></span>",
+                    type:'success'
+                });
+            }
+            else if(json.message == false){
+                $.Notify({
+                    caption: 'Warning',
+                    content: json.result,
+                    icon: "<span class='mif-warning'></span>",
+                    type:'warning'
+                });
+            }
+            else{
+                $.Notify({
+                    caption: 'Error ',
+                    content: json.result ,
+                    icon: "<span class='mif-notification'></span>",
+                    type:'alert'
+                });
+            }
+        },
+        error:function(x,y,z){
+
+            er = JSON.stringify(x);
+            $.Notify({
+                caption: 'Error',
+                content: 'API ERROR : '+er+' => ' +y+ ' => '+z ,
+                icon: "<span class='mif-notification'></span>",
+                type:'alert'
+            });
+        }
+    })
+}
+
+
+function savethisform(form){
+
+    if(form == 'database'){
+        database = $('#FormCreateDatabase-database').val()
+        collection = $('#FormCreateDatabase-collection').val()
+
+
+        databaseError=$('#FormCreateDatabase-databaseError');
+        collectionError=$('#FormCreateDatabase-collectionError');
+        a = 1;
+        if(database==''){
+            a = 0;
+            databaseError.removeClass('hidden').children().html('%database% is empty !');
+            setTimeout(function(){
+                databaseError.addClass('hidden')
+            },3000)
+        }
+         if (collection == ''){
+             a = 0;
+            collectionError.removeClass('hidden').children().html('%collection% is empty !');
+             setTimeout(function(){
+                 collectionError.addClass('hidden')
+             },3000)
+        }
+         if((database.length < 8) && (database.length > 0)){
+             a = 0;
+             databaseError.removeClass('hidden').children().html('%database% need more Characters (8) !  !');
+             setTimeout(function(){
+                databaseError.addClass('hidden')
+             },3000)
+
+        }
+        if((collection.length < 8)&& (collection.length > 0)){
+            a = 0;
+            collectionError.removeClass('hidden').children().html('%collection% need more Characters (8) !');
+            setTimeout(function(){
+                collectionError.addClass('hidden')
+            },3000)
+        }
+
+        if(a == 1){
+            url ='create/'+database+'/'+collection;
+            ajaxAPI(url);
+            $('.showDatabases').trigger('click');
+        }
+
+
+
+    }
+    else if(form=='collection'){
+
+    }
+    else{
+        $.Notify({
+            caption: 'Error',
+            content: 'Error No %formulaire% !',
+            icon: "<span class='mif-blocked'></span>",
+            type:'warning'
+        });
+    }
+}
+
+
+
+function dropDatabase(database){
+    url = 'drop/'+database
+    if($('#FormDropDatabase-backup').checked())
+    {
+        url+='?backup=true';
+    }
+
+    ajaxAPI(url);
+    $('#feederShowDatabases').trigger('click');
+
+}
+
+function dropCollection(database,collection){
+    url = 'drop/'+database+'/'+collection;
+    if($('#FormDropCollection-backup').checked())
+    {
+        url+='?backup=true';
+    }
+
+    ajaxAPI(url)
+    $('#feederShowCollections').trigger('click');
+}
+
+function dropDocument(database,collection,_id){
+    url='remove/'+database+'/'+collection+'?_id='+_id;
+    if($('#FormDropCollection-backup').checked())
+    {
+        url+='?backup=true';
+    }
+    ajaxAPI(url);
+    $('#feederShowDocuments').trigger('click');
+}
+
+
+//$('select').select2();
+
+function jsonHTMLparser(data){
+
+
+    myjsonformatted =  JSON.stringify(data,null,'&emsp;')
+    text = myjsonformatted.replace(/\"\,/g,'&quot;,<br/>')
+            .replace(/\"/g,"&quot;")
+            .replace(/\: {/g,': {<br/>')
+
+            .replace(/&emsp;},/g,'<br/>&emsp;},<br>')
+            .replace(/&emsp;&emsp;},/g,'<br/>&emsp;&emsp;},<br>')
+            .replace(/&emsp;&emsp;&emsp;},/g,'<br/>&emsp;&emsp;&emsp;},<br>')
+            .replace(/ }/g,'<br/>}')
+            .replace(/  }/g,'<br/>}')
+    ;
+    return text;
+
+
+
+};
+
+function hideOptionsMenuCreateCollection(){
+    $('#FormCreateCollection-options-menu').css('display','none').css('overflow','hidden');
+    $('#showmenuoptions').attr('onclick','showOptionsMenuCreateCollection()')
+}
+function showOptionsMenuCreateCollection(){
+    $('#FormCreateCollection-options-menu').css('display','block').css('overflow','auto');
+    $('#showmenuoptions').attr('onclick','hideOptionsMenuCreateCollection()')
+
+}
+
+
+function listDocuments(data , database, collection){
+    nb = data.list.length;
+    html ='';
+    //alert(data[0]['_id']['$id']);
+    if(nb == 0){
+
+    }
+
+    else {
+
+        if((database !='')&&(collection!='')){
+            for(i=1;i<=nb;++i){
+                if((i == 0) || (i%12==1)){
+
+                    html += '<div class="row cells12">';
+
+                }
+
+
+                n= i-1;
+
+                //alert(myjsonformatted);
+
+
+
+
+                text = jsonHTMLparser(data.list[n]);
+                html+='<div ' +
+                        'data-collection="'+collection+'" ' +
+                        'data-database="'+database+'" ' +
+                        'data-id="'+data.list[n]['_id']['$id']+'" ' +
+                        'class="cell editor"' +
+                        'id="div_documents_'+data.list[n]['_id']['$id']+'">' +
+
+                        '   <div class="margin5" >' +
+                        '<span data-role="hint"'+
+                        'data-hint-background="bg-white"'+
+                        'data-hint-color="fg-darkBlue"' +
+                        'data-hint-position="bottom"'+
+                        'data-hint-mode="2"' +
+                        'data-hint-max-size="400"'+
+                        'data-hint="Content|'+text+'"'+
+                        ' >'+
+                        '   <span class=" fg-white mif-file-code mif-2x"></span>' +
+                        '   </span></div>' +
+
+                        '   <div>' +
+                        '<span class="fg-white">#'+i+
+                        '</span>' +
+                        '   </div>' +
+
+                        '</div>';
+                if((i%12==0)  && (i > 11)){
+                    html+='</div>'
+                }
+                else if(i == n){
+                    html+='</div>'
+                }
+            }
+        }
+        else if((database!='')&&(collection=='')){
+            for(i=1;i<=nb;++i){
+                n = i-1;
+                color='green';
+                if(data[data.list[n]].count==0){
+                    color = 'darkCrimson'
+                }
+
+
+                if((i == 0) || (i%6==1)){
+
+                    html += '<div class="row cells12">';
+
+                }
+
+                html+='<div ' +
+
+                        'data-database="'+database+'" ' +
+                        'data-collection="'+data.list[n]+'" ' +
+                        'class="cell colspan2 goincollection"' +
+                        'id="div_collection_'+data.list[n]+'">' +
+                        '<div class="margin5" style="min-width: 60px"><span ' +
+                        'class="float-left fg-white mif-folder mif-3x" style="z-index:400"></span>' +
+                        '<span class="bg-'+color+' fg-white"  style="' +
+                        'position:relative;'+
+                        'float:none;' +
+                        'right:0;' +
+                        'top:16px;' +
+                        'padding:1px 5px 1px 5px;'+
+                        'margin-top:15px;' +
+
+
+
+                        'border-bottom-right-radius: 20%;' +
+                        'border-top-right-radius:20% ' +
+                        '">'+data[data.list[n]].count+'</span>' +
+
+                        '</div>' +
+                        '<div class="clearall"></div>' +
+
+                        '<div >' +
+                        '' +
+                        '<div class="split-button small-button" style="margin:0;padding:0">                          '+
+                        '<button class="split mini-button float-left cycle-button dropdown-toggle modifytoggle"' +
+                        ' style="' +
+                        'margin-left:0;' +
+                        'padding-right:0; width:10px;height: 10px;margin-top:13px;margin-right:5px"></button>    ' +
+                        '<span ' +
+                        'style="word-wrap: break-word; font-size:14px; line-height:90%;width:65px;padding-top:10px"' +
+                        'class=" goincollection float-left fg-white" data-database="'+database+'" ' +
+                        'data-collection="'+data.list[n]+'">'+data.list[n]+
+                        ''+
+
+
+                        '</span></span>'+
+                        '' +
+
+                        ' '+
+
+                        '    <ul class="split-content d-menu" data-role="dropdown"> '+
+                        '    <li><a href="#"><span class="mif-file-code icon" ></span> Add Document</a></li> '+
+                        '    <li><a class="dropCollection" href="#" data-database="'+database+'" data-collection="'+data.list[n]+'" >' +
+                        '<span class="mif-folder icon" ></span> Delete Collection</a></li>' +
+                        '<li><a href="#"><span class="mif-tools icon" ></span> Set Options</a></li>'+
+                        '    </ul>                                                              '+
+                        '    </div>                                                             '+
+
+
+                        '</div>' +
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                                '</div>';
+                if((i%6==0)  && (i > 5)){
+                    html+='</div>'
+                }
+
+
+
+                if((i==nb)&&(i%6!=0)){
+
+                    html+='' +
+                            '<div ' +
+                            ' class="cell colspan2 "' +
+                            'id="div_collection_new">' +
+
+                            '<div class="margin5" style="min-width: 60px"  >' +
+                            '<span class="float-left createCollection fg-white mif-folder mif-3x" ' +
+                            'style="z-index:400"><span ' +
+                            'style="top:0;margin-left:-15px"' +
+                            'class="mif-plus mif-lg right top pos-abs fg-white bg-green ' +
+                            'createCollection cycle-button small-button"></span></span>' +
+                            '</div>' +
+                            '<div class="clear-float"></div></div>' ;
+                }
+                else if((i==nb)&&(i%6==0)){
+                    html += '<div class="row cells12">';
+                    html+='' +
+                            '<div ' +
+                            ' class="cell colspan2 "' +
+                            'id="div_collection_new">' +
+
+                            '<div class="margin5" style="min-width: 75px"  >' +
+                            '<span class="float-left createCollection fg-white mif-folder mif-4x" ' +
+                            'style="z-index:400">' +
+                            '<span ' +
+
+                            'style="top:0;margin-left:-15px"' +
+                            'class="' +
+                            'mif-plus mif-lg right top pos-abs ' +
+                            'fg-white bg-green createCollection cycle-button small-button"></span></span>' +
+                            '</div>' +
+                            '<div class="clear-float padding20"></div></div>' ;
+
+                }
+
+
+
+
+            }
+        }
+        else{
+            for(i=1;i<=nb;++i){
+                if((i == 0) || (i%6==1)){
+
+                    html += '<div class="row cells12">';
+
+                }
+                n= i-1;
+                color='green';
+                if(data.list[n].empty==true){
+                    color = 'darkCrimson'
+                }
+
+                var size = humanFileSize(data.list[n].sizeOnDisk,true);
+
+                html+='<div ' +
+
+                        'data-database="'+data.list[n].name+'" ' +
+
+                        'style="margin-top:20px" class="cell colspan2 "' +
+                        'id="div_database_'+data.list[n].name+'">' +
+
+                            '<div class="margin5" style="min-width: 75px"  >' +
+                            '<a href="#"  ><span  data-database="'+data.list[n].name+'" ' +
+                        ' class="float-left goincollection fg-white mif-database mif-4x" style="z-index:400">' +
+                        '</span></a>' +
+                            '<div class="float-left" style="padding-top:13px;">' +
+                            '' +
+                            '<span data-role="hint"' +
+                            '    data-hint-background="bg-green"' +
+                            '    data-hint-color="fg-white"' +
+                            '    data-hint-mode="2"' +
+                            '    data-hint="Size|'+size+'"' +
+                            '>' +
+                            '<span class="bg-'+color+' fg-white"  style="' +
+                            'z-index:400;' +
+                            'position:relative;'+
+                            'float:none;' +
+                            'right:0;' +
+                            'margin-top:5px;' +
+                            'padding:1px 5px 1px 5px;'+
+                            'border-bottom-right-radius: 20%;' +
+                            'border-top-right-radius:20% ' +
+                            '">'+data[data.list[n].name].count+'</span>' +
+                            ' ' +
+                            ' </span>'+
+
+
+                            '    <br>' +
+
+
+
+                            '</div></div>' +
+                            '<div class="clear-float"></div>' +
+
+                            '<div >' +
+                            '' +
+                            '<div class="split-button small-button" style="margin:0;padding:0">      '+
+                                '<button' +
+                        ' class="split mini-button float-left cycle-button dropdown-toggle modifytoggle"' +
+                        ' style="' +
+                        'margin-left:0' +
+                        ';padding-right:0; ' +
+                        'width:10px;height: 10px;margin-top:13px;margin-right:5px"></button>    ' +
+                        '<span ' +
+                        'style="word-wrap: break-word; font-size:14px; line-height:90%;width:65px;padding-top:10px"' +
+                        'class="float-left fg-white" ' +
+                        'data-database="'+data.list[n].name+'">'+data.list[n].name+
+                        ''+
+
+
+                                '</span></span>'+
+
+                                '    <ul class="split-content d-menu" data-role="dropdown"> '+
+                                    '    <li><a href="#"><span class="mif-folder icon" >' +
+                        '</span> Add Collection</a></li>  '+
+                                    '    <li ><a   data-database="'+data.list[n].name+'" href="#" ' +
+                        'class="dropDatabase" ><span class="mif-database icon" >' +
+                        '</span> Delete DB</a></li>' +
+                                    '<li><a href="#"><span class="mif-tools icon" >' +
+                        '</span> Set Options</a></li>                                   '+
+
+                                    '    </ul>                                                              '+
+                                '    </div>                                                             '+
+
+
+                            '</div>' +
+                        '</div>';
+                if((i%6==0)  && (i > 5)){
+
+
+                    html+=  '</div>'
+                }
+                if((i==nb)&&(i%6!=0)){
+
+                        html+='' +
+                                '<div ' +
+                                'style="margin-top:20px" class="cell colspan2 "' +
+                                'id="div_database_new">' +
+
+                                '<div class="margin5" style="min-width: 75px"  >' +
+                                '<span ' +
+                                'class="float-left createDatabase fg-white mif-database mif-4x" style="z-index:400">' +
+                                '<span ' +
+                                'style="margin-top:-95px;margin-left:-15px"' +
+                                'class="mif-plus mif-lg fg-white bg-green createDatabase cycle-button small-button">' +
+                                '</span></span>' +
+                                '</div>' +
+                                '<div class="clear-float"></div></div>' ;
+                    }
+                else if((i==nb)&&(i%6==0)){
+                    html += '<div class="row cells12">';
+                    html+='' +
+                            '<div ' +
+                            'style="margin-top:20px" class="cell colspan2 "' +
+                            'id="div_database_new">' +
+
+                            '<div class="margin5" style="min-width: 75px"  >' +
+                            '<span class="float-left createDatabase fg-white mif-database mif-4x" ' +
+                            'style="z-index:400">' +
+                            '<span ' +
+                            'style="margin-top:-95px;margin-left:-15px"' +
+                            'class="mif-plus mif-lg fg-white bg-green createDatabase cycle-button small-button">' +
+                            '</span></span>' +
+                            '</div>' +
+                            '<div class="clear-float"></div></div>' ;
+
+                }
+
+            }
+
+        }
+    }
+    $('#listDocuments').html(html);
+   // $('.hidetoggle:before').hide();
+}
+
+
+function feeder(database,collection){
+    html='';
+    feeddiv=$('#feeder');
+
+    if((database != '') &&(collection!='')){
+        html+='<ul class="breadcrumbs fg-white" style="background: transparent">' +
+                '<li id="feederShowDatabases" class="showDatabases fg-white">' +
+                '<span class="mif-tree icon margin5 "></span> MongoDB' +
+                '</li>' +
+
+                '<li id="feederShowCollections" class="showCollections fg-white" data-database="'+database+'">' +
+                '<span class="mif-database icon margin5 "></span>'+database+
+                '</li>'+
+                '<li id="feederShowDocuments" class="showDocuments  fg-white" id="func_showDocuments" ' +
+                'data-database="'+database+'" data-collection="'+collection+'">' +
+                '<span class="mif-folder icon margin5 "></span>'+collection+
+                '</li></ul>';
+    }
+    else if((database != '')&&(collection=='') ){
+        html+='<ul class="breadcrumbs fg-white" style="background: transparent">' +
+                '<li id="feederShowDatabases" class="showDatabases fg-white">' +
+                '<span class="mif-tree icon margin5"></span> MongoDB' +
+                '</li>' +
+
+                '<li id="feederShowCollections" class="showCollections fg-white" data-database="'+database+'">' +
+                '<span class="mif-database icon margin5 "></span>'+database+
+                '</li>'+
+                '</ul>';
+
+
+    }
+    else{
+        html+='<ul class="breadcrumbs fg-white" style="background: transparent">' +
+                '<li id="feederShowDatabases" class="showDatabases fg-white">' +
+                '<span class="mif-tree icon margin5 "></span> MongoDB' +
+                '</li>' +
+                '</ul>';
+    }
+    feeddiv.html(html);
+
+}
+
+function getvalue(database,collection,options){
+    database = database || '';
+    collection = collection|| '';
+    options = options || '';
+
+
+    if(database ==''){
+        url = '';
+    }
+    else if(collection == ''){
+        url = '/'+database;
+    }
+    else{
+        if(options == ''){
+            url='/'+database+'/'+collection;
+        }
+        else {
+
+        }
+    }
+
+    if(database == 'local'){
+        $.Notify({
+            caption: 'Error',
+            content: 'Local BDD,  No access !',
+            icon: "<span class='mif-blocked'></span>",
+            type:'warning'
+        });
+    }
+    else {
+        $.ajax({
+            url:'{{ path('index.api') }}search'+url,
+            //  dataType:'json',
+            success:function(j){
+
+
+
+                data = $.parseJSON(j);
+              //  console.log(data);
+                feeder(database,collection);
+                listDocuments(data['result'], database, collection);
+
+
+            },
+            error:function(x,y,z){
+
+
+            }
+        })
+    }
+}
+
+function createDialog(id,database,collection){
+
+
+
+    html =  '<div   data-role="dialog,draggable" ' +
+            '       data-database="'+database+'" ' +
+            '       data-collection="'+collection+'" ' +
+            '       id="dialog_'+id+'" ' +
+            '       class="dialog window" ' +
+            '       data-close-button="true"' +
+            '       style="width:auto;height:auto;min-height:300px;min-width: 400px"' +
+            '>'+
+
+            '       <div class="window-caption bg-cyan fg-white">                        '+
+                '       <span class="window-caption-icon"><span class="mif-file-code icon"></span></span> '+
+                '       <span class="window-caption-title">'+id+'</span>                    '+
+                '       <span class="btn-close bg-red fg-white"></span>                      '+
+            '       </div>                                                               '+
+            '       <div  class="window-content bg-white padding5">  '+
+            '           <div id="content_'+id+'" style="height: auto;width: auto;min-height:300px;min-width: 400px">' +
+            '           </div>'+
+            '       </div>'+
+            '   </div>';
+    $(html).insertAfter('#temp');
+
+}
+
+
+function api(data){
+    $.ajax({
+        url:data['url'],
+        success:function(j){
+
+            json = $.parseJSON(j);
+
+            if(json['message']==true) {
+                $.Notify({
+                    caption: data['action'],
+                    content: json.result,
+                    icon: "<span class='mif-checkmark fg-white'></span>",
+                    type: 'success'
+                });
+            }
+            else {
+                $.Notify({
+                    caption: data['action'],
+                    content: json.result,
+                    icon: "<span class='mif-warning fg-white'></span>",
+                    type: 'warning'
+                });
+            }
+        },
+        error:function(){
+            $.Notify({
+                caption: data['action'],
+                content: 'Error : Connection with Api Fail !',
+                icon: "<span class='mif-cross fg-white'></span>",
+                type:'alert'
+            });
+        }
+
+    })
+}
+
+
+
+$(function() {
+    $('.showDocuments').on('click',function(){
+        var database = $(this).attr('data-database');
+        var collection = $(this).attr('data-collection');
+        getvalue(database,collection);
+    }).hover(
+            function(){
+                $(this).toggleClass('fg-black').toggleClass('fg-white');
+            },
+            function(){
+                $(this).toggleClass('fg-black').toggleClass('fg-white');
+            }
+    );
+    $('#feeder').on('click','.showDocuments',function(){
+                var database = $(this).attr('data-database');
+                var collection = $(this).attr('data-collection');
+                getvalue(database,collection);
+            })
+            .on('click','.showCollections',function(){
+                var database = $(this).attr('data-database');
+                getvalue(database,'');
+            })
+            .on('click','.showDatabases',function(){
+
+                getvalue()
+            });
+
+    $('.node-toggle').on('click', function(){
+        $(this).parent().toggleClass('collapsed')
+    });
+    $('.editor').on('click',function(){
+
+    });
+    $('.createDocument').on('click',function(){
+
+
+
+
+        jsoneditor_({},'editor_createDocument')
+        $('#dialog_createDocument').dialog().data('dialog').open();
+        $('span.select2-container').css('width','100%')
+    });
+    $('.createDatabase').on('click',function(){
+        //                    alert();
+
+
+        $('#dialog_createDatabase').dialog().data('dialog').open();
+        $('span.select2-container').css('width','100%')
+    });
+    $('.createCollection').on('click',function(){
+        //                    alert();
+        html=
+
+        //$(html).insertAfter('#temp');
+        $('#dialog_createCollection').dialog().data('dialog').open();
+        $('span.select2-container').css('width','100%')
+        //$('.showDatabases').trigger('click');
+    });
+
+
+
+
+
+    $('.showCollections').on('click',function(){
+        database = $(this).attr('data-database');
+        collection = $(this).attr('data-collection');
+        getvalue(database,collection)
+    });
+    $('.showDatabases',function(){
+
+        // alert();
+        database = '';
+        collection = '';
+        getvalue()
+    });
+    $('#listDocuments')
+            .on('click','.editor',function(){
+                database = $(this).attr('data-database');
+                collection = $(this).attr('data-collection');
+                id=$(this).attr('data-id');
+                createDialog(id,database,collection);
+                dialogid= '#dialog_'+id;
+                $.ajax({
+                    url:'{{ path('index.api') }}search/'+database+'/'+collection+'?_id='+id,
+                    success:function(j){
+                        json = $.parseJSON(j);
+                        jsoneditor_(json.result.list[0],'content_'+id)
+                    }
+                });
+
+                var dialog = $(dialogid).dialog().data('dialog');
+                dialog.open();
+
+
+            })
+            .on('click','.goincollection',function(){
+                database = $(this).attr('data-database');
+                collection = $(this).attr('data-collection');
+                getvalue(database,collection)
+            })
+            .on('click','.createDatabase',function(){
+
+                $('#dialog_createDatabase').dialog().data('dialog').open();
+                $('span.select2-container').css('width','100%')
+
+            })
+            .on('click','.dropDatabase',function(){
+                database = $(this).attr('data-database');
+                              $('#FormDropDatabase-database').attr('value',database);
+                                $('#buttonFormDropDatabase').attr('onclick','dropDatabase(\''+database+'\')')
+                $('#dialog_dropDatabase').dialog().data('dialog').open();
+
+
+            })
+            .on('click','.dropCollection',function(){
+                database = $(this).attr('data-database');
+                collection = $(this).attr('data-collection');
+
+             //   $('#FormDropCollection-collection').attr('data-database',database);
+                $('#FormDropCollection-collection').attr('value',collection);
+                $('#buttonFormDropCollection').attr('onclick','dropCollection(\''+database+'\',\''+collection+'\')')
+                $('#dialog_dropCollection').dialog().data('dialog').open();
+
+
+            })
+            .on('click','.removeDocument',function(){})
+
+
+
+});
+

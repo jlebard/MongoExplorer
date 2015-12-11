@@ -1,0 +1,26 @@
+{
+    "name": "fredjuvaux/less-provider",
+    "description": "Simple less php service provider for Silex",
+    "keywords": ["silex", "less", "lessphp", "provider"],
+    "license": "MIT",
+    "homepage": "https://github.com/fredjuvaux/silex-less-provider",
+    "type": "library",
+    "authors": [
+        {
+            "name": "Fred Juvaux",
+            "homepage": "http://fredjuvaux.fr/",
+            "email": "hello@fredjuvaux.fr" 
+        }
+    ],
+    "require": {
+        "php": ">=5.3.3",
+        "silex/silex": "~1.0",
+        "leafo/lessphp": "~0.5"
+    },
+    "autoload": {
+        "psr-0": {
+            "Less\\Provider": "src"
+        }
+    },
+    "minimum-stability": "dev"
+}

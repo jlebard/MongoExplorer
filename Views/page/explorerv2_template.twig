@@ -1,0 +1,114 @@
+{% extends "default/html.twig" %}
+
+
+{% block content %}
+    <div class="row cells12" style="height: 100%">
+
+        <div class="cell colspan3">
+            <div id="sidebar" class="fg-white margin5">
+                <div class="treeview" data-double-click="false"
+                     data-on-click="">
+                    <ul class="fg-white">
+                        <li><span class="leaf"><a href class="showDatabases fg-white"><span class="mif-tree"></span> MongoDB </a></span>
+                            <ul>
+                            {% for database in data.databases.list %}
+                                <li class="node  {% if database.empty != true %}collapsed{% endif %} ">
+
+                                    {% if database.empty != true %}<span class="fg-white node-toggle"></span>{% endif %}
+                                    <span class="leaf "><a href="#" class="showCollections fg-white" data-database="{{ database.name }}">
+                                            <span class="icon mif-database"></span>{{ database.name }}</a>
+                                        <span style="right:0;padding:0px 0px 0px 5px ;font-size:10px" class="cercle">{{data.databases[database.name].count }}</span></span>
+
+                                    {% if database.empty != true %}
+                                    <ul>{% for collection in data.databases[database.name].collection.list%}
+                                        <li class="node collapsed" style="width: 100%">
+                                                <span class="leaf showDocuments fg-white" data-database="{{ database.name }}" data-collection="{{ collection }}">
+                                                    <span class="icon mif-folder">
+                                                    </span>{{ collection }}
+                                                </span>
+                                            <span style="top:0;right:0;padding:0px 5px 0px 5px ;font-size:8px" class="cercle">
+                                                {{data.databases[database.name].collection[collection].count }}   </span>
+                                        </li>
+                                        {% endfor %}
+                                    </ul>
+                                    {% endif %}
+
+                                </li>
+                            {% endfor %}
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="cell colspan8">
+            <div class="row cells12">
+                <div class="cell colspan12 margin5">
+                    <div id="searchbar">
+                        <div class="row cells12">
+                            <div class="cell colspan4 ">
+                                <div class="input-control full-size" data-template-result="fmtState" data-role="select">
+                                    <select >
+                                    {% for database in data.databases.list %}
+                                        <optgroup label="{{ database.name }}">
+                                            {% for collection in data.databases[database.name].collection.list%}
+                                                <option value="{{ database.name }}/{{ collection }}">{{ collection }}</option>
+                                            {% endfor %}
+                                        </optgroup>
+
+                                    {% endfor %}
+
+
+                                    </select>
+
+                                    <div class="button-group">
+                                        <button class="button createDatabase" ><span class="mif-database"></span></button>
+                                        <button class="button createCollection"><span class="mif-folder"></span></button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="cell colspan8 ">
+                                <div class="input-control text full-size" data-role="input">
+
+
+                                    <input id="searchthat" placeholder="{&quot;toto&quot;:&quot;tata&quot;}" type="text">
+
+                                    <div class="button-group">
+                                        <button class="button searchthisvalue"><span class="mif-search"></span></button>
+                                        <button class="button createDocument"><span class="mif-file-code"></span></button>
+                                    </div>
+                                </div>
+                            </div>
+
+
+
+                    </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row cells12">
+                <div class="cell colspan12 margin5">
+                    <div id="feeder" class="fg-white">
+
+                    </div>
+                </div>
+            </div>
+            <div class="row cells12">
+                <div class="cell colspan12 margin5">
+                    <div id="listDocuments">
+
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="cell"></div>
+    </div>
+    <div id="temp" class="hidden"></div>
+    {% embed "page/explorerv2/Formulaire_CreationCollection.twig" %}
+        {% endembed %}
+
+    <script>
+    {% embed "script/explorerv2/explorerv2_script.js.twig" %}
+    {% endembed %}
+    </script>
+{% endblock %}

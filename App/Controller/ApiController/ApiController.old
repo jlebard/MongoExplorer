@@ -1,0 +1,47 @@
+<?php
+namespace App\Controller\ApiController {
+
+    use Silex\Application;
+    use Silex\ControllerProviderInterface;
+    use Symfony\Component\HttpFoundation\Request;
+
+
+
+
+    class ApiController extends ControllerProviderInterface
+    {
+
+        public function index(Application $app, $action = null, $database = null, $collection = null, Request $request)
+        {
+
+            $result = array();
+
+            if ($request->isMethod('POST')) {
+
+            } else {
+                $result = array('message' => 'false');
+            }
+
+
+            return $app['twig']->render('page/json_template.twig', array('json' => $result));
+
+        }
+
+
+        public function connect(Application $app)
+        {
+
+            // créer un nouveau controller basé sur la route par défaut
+            $index = $app['controllers_factory'];
+            $index->match("/", 'App\Controller\ApiController\ApiController::index')->bind('index.api');
+            $index->match("/{action}", 'App\Controller\ApiController\ApiController::index');
+            $index->match("/{action}/{database}", 'App\Controller\ApiController\ApiController::index');
+            $index->match("/{action}/{database}/{collection}", 'App\Controller\ApiController\ApiController::index');
+
+
+            return $index;
+        }
+
+
+    }
+}

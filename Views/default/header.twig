@@ -1,0 +1,81 @@
+    <div class="app-bar darcula">
+        <div class="app-bar-element">
+        <a href="{{ path('index.index') }}" class="app-bar-element" ><span class="mif-home icon" style="margin-bottom: 5px" ></span> Home</a>
+        </div>
+        <span class="app-bar-divider"></span>
+
+        {% if user != 0 %}
+        <ul class="app-bar-menu small-dropdown">
+            <li><a href="{{ path('explorer.index') }}"> <span class="mif-folder-open icon" style="margin-bottom: 5px"></span> Explorer</a></li>
+            <li>
+                <a href="" class="dropdown-toggle"><span style="margin-bottom: 5px" class="icon mif-insert-template"></span> Editor</a>
+                <ul class="d-menu" data-role="dropdown">
+
+
+
+                    <li><a href="" class="dropdown-toggle">Databases <span class="bg-cyan fg-white" style="padding:0 7px 2px 7px; margin:0 0 0 0; border-radius: 45%;">{{ config.databases.count }}</span></a>
+                        <ul class="d-menu" data-role="dropdown">
+                            {% for database in config.databases.list %}
+                            <li><a href="" class="dropdown-toggle">{{ database.name }} <span class="bg-cyan fg-white" style="padding:0 7px 2px 7px; margin:0 0 0 0; border-radius: 45%;">{{ config.databases[database.name].count }}</span></a>
+                                <ul class="d-menu" data-role="dropdown">
+                                    <li><a href="">Edit Him</a></li>
+                                    <li><a href="">Delete Him</a></li>
+                                </ul>
+                            </li>
+                            {% endfor %}
+                            <li class="divider"></li>
+                            <li>
+                                <a href="">
+                                    <span class=" mif-plus fg-cyan"></span> Create Database
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+            </li>
+
+        </ul>
+        {% endif %}
+
+        <div class=""></div>
+        <div class="divider"></div>
+        {% if user == 0 %}
+        <div class="app-bar-element place-right active-container">
+            <a class="dropdown-toggle fg-white"><span class="mif-enter"></span> Enter</a>
+            <div style="display: none;" class="app-bar-drop-container bg-white fg-dark place-right" data-role="dropdown" data-no-close="true">
+                <div class="padding20">
+
+                        <h4 class="text-light">Login to service...</h4>
+                        <div class="input-control text">
+                            <span class="mif-user prepend-icon"></span>
+                            <input id="username" type="text">
+                        </div>
+                        <div class="input-control text">
+                            <span class="mif-lock prepend-icon"></span>
+                            <input id="password" type="password">
+                        </div>
+                        <label class="input-control checkbox small-check">
+                            <input type="checkbox">
+                            <span class="check"></span>
+                            <span class="caption">Remember me</span>
+                        </label>
+                        <div class="form-actions">
+                            <button id="logme" class="button">Login</button>
+                            <button class="button link">Cancel</button>
+                        </div>
+
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="app-bar-element place-right">
+            <a href="{{ path('logout.index') }}" class="fg-white app-bar-element"><span style="margin-bottom: 5px" class="mif-exit icon"></span> Exit</a>
+        </div>
+        {% endif  %}
+
+    </div>
+
+
+
+
+

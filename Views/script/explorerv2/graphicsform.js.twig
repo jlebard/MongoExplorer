@@ -1,0 +1,29 @@
+function fmtState (state) {
+
+
+    if (!state.id) { return state.text; }
+    var $state = $(
+            '<span>'+
+            '<span class="mif-folder mif-lg"></span> ' +
+            state.text +
+            '</span>'
+    );
+    return $state;
+}
+function fmtState_database (state) {
+
+
+    if (!state.id) { return state.text; }
+    var $state = $(
+            '<span>'+
+            '<span class="mif-database mif-lg"></span> ' +
+            state.text +
+            '</span>'
+    );
+    return $state;
+}
+
+function fmtState_collection(state){
+    return fmtState(state)
+
+}

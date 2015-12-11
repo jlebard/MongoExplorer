@@ -1,0 +1,228 @@
+ <div data-role="dialog,draggable" data-close-button="true" class="padding10 bg-white fg-black" id="dialog_createCollection" >   
+     <h1>Create Collection</h1>   
+     <hr>   
+     <div class="margin20 bg-white float-left" style="z-index:2050">
+         <div class="input-control bg-white" data-template-result="fmtState2" style="width:80%" data-role="select">
+             <label>Select Database </label>   
+             <select id="FormCreateCollection-database" style="width:95%">  
+                {% for database in data.databases.list %}
+                     <option value="{{ database.name }}">{{ database.name }}</option>  
+
+                {% endfor %}
+                 </select>   
+             </div>
+
+         <div class="clear-float clearfix" style="margin-top:10px"></div>
+         <hr style="height: 1px" class="clear-float clearfix clearall">
+
+             <div class="margin20 bg-white"></div>
+             <div class=" bg-white input-control text margin10">
+                <label>Name</label>  
+                <span class="mif-folder prepend-icon"></span>  
+                <input id="FormCreateCollection-collection" name="FormCreateCollection-collection" type="text" placeholder="Collection Name">  
+             </div>
+
+         <div class="clear-float clearfix" style="margin-top:20px"></div>
+         <hr class="clear-float clearfix clearall">
+         <div class="button-group bg-white">
+             <button onclick="savethisform('collection')" class="button small-button success">Save !</button>
+             <button id="showmenuoptions" onclick="showOptionsMenuCreateCollection()" class="button small-button Primary">Options</button>
+             <button onclick="clearthisform('collection')" class="button small-button warning">Clear</button>
+         </div>
+        <div class="margin10"></div>
+
+     </div>
+        <div id="FormCreateCollection-options-menu" class="float-left bg-white margin20" style="display: none; z-index:2010; overflow:hidden ;">
+            <label class=" bg-white input-control margin10 checkbox">  
+                <input id="FormCreateCollection-capped"  name="FormCreateCollection-capped" type="checkbox">
+                <span class="check"></span>  
+                <span class="caption">Capped ?</span>  
+                </label>
+
+
+            <hr class="clear-float clearfix clearall">
+            <div class="input-control bg-white text margin10" data-role="keypad" data-keys="1,2,3,4,5,6,7,8,9,0,*">
+                <label></label>
+                <span class="mif-drive prepend-icon"></span>
+                <input id="FormCreateCollection-size" name="FormCreateCollection-size" type="text" placeholder="size * 1024">
+            </div>
+
+            <div class="clear-float clearfix" style="margin-top:10px"></div>
+            <hr class="clear-float clearfix clearall">
+            <div class="input-control bg-white text margin10" data-role="keypad">
+                <label></label>
+                <span class="mif-file-code prepend-icon"></span>
+                <input id="FormCreateCollection-max" name="FormCreateCollection-max" type="text" placeholder="Max Documents">
+            </div>
+
+            <div class="clear-float clearfix" style="margin-top:10px"></div>
+            <hr class="clear-float clearfix clearall">
+
+
+            <label class="margin10 bg-white input-control checkbox">
+                <input  name="FormCreateCollection-autoIndexId" id="FormCreateCollection-autoIndexId" type="checkbox" checked>
+                <span class="check"></span>
+                <span class="caption">Auto Index Id ?</span>
+            </label>
+        </div>
+
+
+
+ </div>
+
+
+   <div data-role="dialog,draggable" style="min-width:500px" data-close-button="true" class="padding10 bg-white fg-black" id="dialog_createDocument" >      
+       <h1>Create Document</h1>   
+       <hr>      
+       <div class="margin20 bg-white">      
+           <div class="input-control" data-template-result="fmtState2" style="width:80%" data-role="select"><label for="FormCreateCollection-database">Select Database & Collection</label>
+               <select id="FormCreateCollection-database" style="width:95%;"> 
+                 {% for database in data.databases.list %}
+                    <optgroup label="{{ database.name }}"> 
+                     {% for collection in data.databases[database.name].collection.list%}
+                           <option value="{{ database.name }}/{{ collection }}">{{ collection }}</option> 
+                     {% endfor %}
+                    </optgroup>
+                     {% endfor %}
+               </select></div>      
+           </div> 
+       <hr class="margin20"> 
+       <div class="margin20">      
+           </div> 
+
+       <div id="editor_createDocument" class="bg-white"></div>      
+
+   </div>
+ 
+ 
+  <div data-role="dialog,draggable" data-close-button="true" class="padding10 bg-white fg-black" id="dialog_createDatabase" >
+     <h1>Create Database</h1>
+     <hr>
+
+     <div class="margin20 bg-white">
+         <div class="input-control text margin10 float-left">
+             <label>Name</label>
+
+             <span class="mif-database prepend-icon"></span>
+
+
+             <input data-validate-func="minlength"
+                    data-validate-arg="8"
+                    data-validate-hint="This field must contains min 6 characters!"
+                    class="required" id="FormCreateDatabase-database" name="FormCreatedatabase-database" type="text" placeholder="Database's Name">
+
+         </div>
+         <br>
+         <div id="FormCreateDatabase-databaseError" style="right:-150px;top:110px; height: auto;max-height: 50px;z-index:2000;width:200px;padding-top:5px;" class="hidden pos-abs popover marker-on-left bg-red fg-white float-left">
+             <div  class="fg-white"></div>
+         </div>
+
+         <div class="clear-float clearfix" style="margin-top:20px"></div>
+         <hr style="height: 1px" class="clear-float clearfix clearall">
+         <div class="clear-float clearfix" style="margin-top:20px"></div>
+
+
+         <div class="input-control text margin10 float-left" >
+             <label>Need to create a collection</label>
+             <span class="mif-folder prepend-icon"></span>
+             <input  data-validate-func="minlength"
+                     data-validate-arg="8"
+                     data-validate-hint="This field must contains min 6 characters!"
+
+                     class="required" id="FormCreateDatabase-collection" name="FormCreatedatabase-collection" type="text" placeholder="Collection's Name">
+         </div>
+         <br>
+         <div id="FormCreateDatabase-collectionError" style="right:-150px;top:200px; height: auto;max-height: 50px;z-index:2000;width:200px;padding-top:5px;" class=" hidden pos-abs popover marker-on-left bg-red fg-white float-left">
+             <div  class="fg-white">This Database Name exist</div>
+         </div>
+
+
+         <div class="clear-float clearfix" style="margin-top:20px"></div>
+         <hr style="height: 1px" class="clear-float clearfix clearall">
+
+         <button onclick="savethisform('database')" class="button success">Record</button>
+         <button onclick="clearthisform('database')" class="button warning">Clear</button>
+
+
+     </div>
+ </div>
+
+
+
+
+ <div data-role="dialog,draggable" data-close-button="true" class="padding10 bg-white fg-black" id="dialog_dropDatabase" >
+     <h1>Delete Database</h1>
+     <hr>
+
+     <div class="margin20 bg-white">
+         <div class="input-control text float-left" >
+             <label for="FormDropDatabase-database">Name</label>
+
+             <span class="mif-database prepend-icon"></span>
+
+
+             <input
+                    class="required" disabled id="FormDropDatabase-database" name="FormDropdatabase-database" type="text" >
+
+         </div>
+
+                <div class="clear-float clearfix" style="margin-top:20px"></div>
+             <hr style="height: 1px" class="clear-float clearfix clearall">
+
+
+
+
+         <label class=" bg-white input-control checkbox">
+             <span class="caption">Backup Database before ?</span>
+             <input id="FormDropDatabase-backup"  name="FormDropDatabase-backup" type="checkbox">
+             <span class="check"></span>
+         </label>
+
+
+
+         <hr style="height: 1px" class="clear-float clearfix clearall">
+         <div >&nbsp;</div>
+         <button onclick="dropDatabase('database')"  id ="buttonFormDropDatabase" class="button success">Drop This !</button>
+         <button onclick="cancelthisform('dialog_dropDatabase')" class="button warning">Cancel</button>
+
+
+     </div>
+ </div>
+
+
+ <div data-role="dialog,draggable" data-close-button="true" class="padding10 bg-white fg-black" id="dialog_dropCollection" >
+     <h1>Delete Collection</h1>
+     <hr>
+
+     <div class="margin20 bg-white">
+         <div class="input-control text margin10 float-left">
+             <label for="FormDropCollection-collection">Name</label>
+
+             <span class="mif-folder prepend-icon"></span>
+
+
+             <input
+                     class="required" disabled data-database="database" id="FormDropCollection-collection" name="FormDropCollection-collection" type="text" >
+
+         </div>
+
+         <div class="clear-float clearfix" style="margin-top:20px"></div>
+         <hr style="height: 1px" class="clear-float clearfix clearall">
+
+
+         <label class=" bg-white input-control margin10 checkbox">
+             <span class="caption">Backup Collection before ?</span>
+             <input id="FormDropCollection-backup"  name="FormDropCollection-backup" type="checkbox">
+             <span class="check"></span>
+         </label>
+
+
+
+         <hr  style="height: 1px" class="clear-float clearfix clearall">
+
+         <button onclick="dropCollection('database','collection')"  id ="buttonFormDropCollection" class="button success">Drop This !</button>
+         <button onclick="cancelthisform('dialog_dropDatabase')" class="button warning">Cancel</button>
+
+
+     </div>
+ </div>

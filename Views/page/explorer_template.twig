@@ -1,0 +1,523 @@
+{% extends "default/html.twig" %}
+
+
+{% block content %}
+    <div class="row cells12">
+    <div class="cell"></div>
+    <div class="fg-white cell colspan8 margin10">
+        <div id="lister" class="lister float-left ">
+            <span class="mif-folder-open" style="margin-bottom:5px;"></span> Explorer
+        </div>
+    </div>
+    <div class="cell"></div>
+</div>
+    <div style="display: block; background: #0072C6;height: 20px;">
+    <div id="wait_Explorer" class="hidden" data-role="preloader"  data-type="metro" data-style="dark"></div>
+    </div>
+    <div id="explorer" style="height: 100%">
+    {% for database in data.databases.list %}
+        <div class="row cells12">
+
+        <div class="cell"></div>
+        <div class="fg-white cell colspan2 flex-size-x200 margin10">
+
+
+
+            <div class="tile-container">
+                <div class="tile {% if database.empty != true %} bg-darkBlue {% else %} bg-yellow {% endif %} fg-white" data-role="tile">
+                    <div class="tile-content slide-up iconic {% if database.empty != true %} bg-cyan {% else %} bg-yellow {% endif %}">
+                        <div class="slide {% if database.empty != true %} bg-cyan {% else %} bg-yellow {% endif %}">
+                            <span class="icon mif-database"></span>
+                            <span class="tile-badge bg-darkRed">{{ data.databases[database.name].count }}</span>
+                            <span class="tile-label">{{ database.name }}</span>
+                        </div>
+                        <div class="ribbed-green slide-over">
+                            <div class="margin20">
+                                <button value="{{ database.name}}" onclick="explore('{{ database.name}}')" class="button mini-button float-left explore db"><span class="mif-search mif-lg"></span></button>
+                                <button value="{{ database.name}}"  onclick="removethat('{{ database.name}}')" class="button mini-button float-left delete db"><span class="mif-cancel mif-lg"></span></button>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            </div>
+
+
+
+
+        <div class="cell colspan8 margin10">
+            {% if database.empty != true %}
+                <div class="tile-container">
+                {% for collection in data.databases[database.name].collection.list%}
+
+                    <div class="tile bg-darkCrimson float-left " data-role="tile">
+                        <div class="tile-content slide-up fg-white iconic bg-darkCrimson">
+                            <div class="slide bg-darkCrimson">
+                                <span class="icon mif-folder"></span>
+                                <span class="tile-badge bg-darkRed">{{ data.databases[database.name].collection[collection].count }}</span>
+                                <span class="tile-label"><h6>{{ collection }}</h6></span>
+                            </div>
+                            <div class="ribbed-green slide-over">
+                                <div class="margin20">
+                                <button value="{{ database.name }}/{{ collection }}" onclick="explore('{{ database.name }}/{{ collection }}')" class="explorer collection button mini-button float-left"><span class="mif-search mif-lg"></span></button>
+                                <button value="{{ database.name }}/{{ collection }}" onclick="removathat('{{ database.name }}/{{ collection }}')" class="delete collection button mini-button float-left"><span class="mif-cancel mif-lg"></span></button>
+                                </div>
+                            </div>
+                        </div>
+
+
+
+
+                    </div>
+
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+    </div>
+    {% endfor %}
+    </div>
+    <div id="databases" style="height: 100%" class="hidden"></div>
+    <div id="show"  style="height: 100%" class="hidden">
+        <div class="row cells12">
+            <div class="cell">
+
+            </div>
+            <div class="fg-white cell">
+
+                <ul class="sidebar no-responsive-future compact" id="sidebar-2">
+               </ul>
+
+
+            </div>
+            <div class="cell colspan8 margin10">
+                <div id="showList">
+
+                </div>
+                <div id="pagination">
+
+                </div>
+            </div>
+            <div class="cell">
+
+            </div>
+        </div>
+    </div>
+<div id="temp"></div>
+
+
+
+
+
+
+
+    <script>
+
+
+
+        function jsoneditor_(json,id) {
+
+            var container = document.getElementById(id);
+            var options = {
+                editable: function (node) {
+                    // node is an object like:
+                    //   {
+                    //     field: 'FIELD',
+                    //     value: 'VALUE',
+                    //     path: ['PATH', 'TO', 'NODE']
+                    //   }
+                    switch (node.field) {
+                        case '_id':
+                            return false;
+                        case 'name':
+                            return {
+                                field: false,
+                                value: true
+                            };
+                        default:
+                            return true;
+                    }
+                }
+            };
+
+            return editor = new JSONEditor(container, options, json);
+        }
+
+        function jsoncodeeditor_(json,id) {
+
+            var container = document.getElementById(id);
+
+
+            return editor = new JSONEditor(container,
+                    {mode:"code"},json);
+
+        }
+
+
+        function saveJson(editor){
+            return editor.getText();
+
+        }
+
+        function sidebar_function(value){
+            //alert(value);
+            explore(value);
+        }
+        function removethisdialog(id){
+            $('#dialog_'+id).remove();
+            $('#tile_'+id).removeClass('element-selected');
+        }
+
+        function editor_function(value,id,i){
+            $('#tile_'+id).addClass('element-selected');
+            id = id ||'';
+
+            if(id==''){
+                url = value;
+            }
+            else {
+             url = value+'?_id='+id;
+            }
+            getJson(url,i);
+        }
+
+        function getJson(value,num){
+            num = num ||''
+            wait = $('#wait_Explorer');
+            wait.children().addClass('bg-grayLighter');
+            wait.removeClass('hidden');
+
+            $.ajax({
+                url:'{{ path('index.api') }}search/'+value,
+                async: false,
+                success:function(j,statut){
+                    json = $.parseJSON(j);
+                    dialog = '<div data-role="dialog,draggable" id="dialog_'+json.result.list[0]['_id']['$id']+'" class="dialog bg-white padding10" data-close-button="true">'+
+                            '<h1> #'+num+' </h1>'+
+                            '<div></div>'+
+                            '<div id="myeditor_'+json.result.list[0]['_id']['$id']+'" class="myeditor" style="width: 400px;height: auto;min-height: 150px ;">'+
+                            '</div>'+
+                            '</div>';
+
+                    $(dialog).insertAfter('#temp');
+
+
+
+                    json = $.parseJSON(j);
+                    nb = json.result.list.length;
+                    if(nb==0){
+
+                    }
+                    else if(nb==1){
+                        data = json.result.list[0];
+                  //      alert(json.result.list[0]['_id']['$id']);
+                        myeditor= jsoneditor_(json.result.list[0],'myeditor_'+json.result.list[0]['_id']['$id']);
+
+                    }
+                    else{
+
+                    }
+
+                },
+                error:function(x,y,z){},
+                complete:function(r,statut){
+              //      $('.jsoneditor').css('background','white');
+                //    $('table.search').addClass('bg-white');
+                  //  $('td.tree > button').addClass('fg-black');
+                //    $('td.tree > div').addClass('bg-white');
+                 //   $('.outer').addClass('bg-white').children().addClass('bg-white');
+
+                    setTimeout(function() {   //calls click event after a certain time
+
+
+                        $('#wait_Explorer').addClass('hidden');
+                        id='dialog_'+json.result.list[0]['_id']['$id'];
+                        $('#'+id).dialog().data('dialog').open();
+                        $('span.dialog-close-button').attr('onclick','removethisdialog(\''+json.result.list[0]['_id']['$id']+'\')');
+
+                    }, 600);
+
+
+
+                }
+
+            })
+        }
+
+        function explore(value){
+             var value = value || 'undefined';
+
+
+            var n = value.search('/');
+            var explorer = $('#explorer');
+            var sidebar2 = $('#sidebar-2');
+            var type;
+            if( value == 'undefined'){
+                value = '';
+                div = $('#show');
+                box = $('#showList');
+                type = 'databases';
+                urlvalue = '';
+
+
+            }
+            else if(n < 0){
+                div = $('#show');
+                box = $('#showList');
+                type = 'collections';
+                urlvalue = '/'+value;
+            }
+            else {
+                div = $('#show');
+                box = $('#showList');
+                type = 'documents';
+                urlvalue = '/'+value;
+            }
+            var dialog='';
+            var url = '{{ path('index.api') }}search'+urlvalue;
+
+            $.ajax({
+                url:url,
+                success:function(j,statut){
+                  json = $.parseJSON(j);
+                    box.html();
+                    if(!explorer.hasClass('hidden')) {
+                        explorer.addClass('hidden');
+                    }
+
+                    lists = json['result']['list'];
+                    html = '<div class="tile-container">';
+
+                    var o = lists.length;
+
+                    if( o > 1) {
+
+                        for (i = 0; i < lists.length; ++i) {
+                            if(type == 'databases'){
+                                if(lists[i].empty == false) {
+                                    myclass = 'cyan'
+                                }
+                                else {
+                                    myclass='yellow'
+                                }
+
+                                html += '<div class="tile bg-'+myclass+' float-left " data-role="tile">' +
+                                        '   <div class="tile-content slide-up fg-white iconic bg-'+myclass+'">' +
+                                        '       <div class="slide bg-'+myclass+'">' +
+                                        '           <span class="icon mif-folder-special"></span>' +
+                                        '           <span class="tile-badge bg-darkRed">' + json.result[lists[i]['name']].count + '</span>                                                                                                                 ' +
+                                        '           <span class="tile-label"><h6>' + lists[i]['name'] + '</h6></span>                                                                                                                                                                   ' +
+                                        '       </div>                                                                                                                                                                                                                      ' +
+                                        '   <div class="ribbed-green slide-over">                                                                                                                                                                                       ' +
+                                        '       <div class="margin20">                                                                                                                                                                                                      ' +
+                                        '           <button value="' + lists[i]['name']+'" onclick="explore(\'' + lists[i]['name']+'\')" class="explorer collection button mini-button float-left"><span class="mif-search mif-lg"></span></button>   ' +
+                                        '           <button value="' + lists[i]['name']+'" onclick="removathat(\'' + lists[i]['name']+'\')" class="delete collection button mini-button float-left"><span class="mif-cancel mif-lg"></span></button>  ' +
+                                        '       </div>' +
+                                        '   </div>' +
+                                        '</div>' +
+                                        '</div>';
+
+                            }
+
+                            if (type == 'collections') {
+
+                                html += '<div class="tile bg-darkCrimson float-left " data-role="tile">' +
+                                        '   <div class="tile-content slide-up fg-white iconic bg-darkCrimson">' +
+                                        '       <div class="slide bg-darkCrimson">' +
+                                        '           <span class="icon mif-folder-special"></span>' +
+                                        '           <span class="tile-badge bg-darkRed">' + json.result[lists[i]].count + '</span>                                                                                                                 ' +
+                                        '           <span class="tile-label"><h6>' + lists[i] + '</h6></span>                                                                                                                                                                   ' +
+                                        '       </div>                                                                                                                                                                                                                      ' +
+                                        '   <div class="ribbed-green slide-over">                                                                                                                                                                                       ' +
+                                        '       <div class="margin20">                                                                                                                                                                                                      ' +
+                                        '           <button value="' + value + '/'+lists[i]+'" onclick="explore(\'' + value + '/'+lists[i]+'\')" class="explorer collection button mini-button float-left"><span class="mif-search mif-lg"></span></button>   ' +
+                                        '           <button value="' + value + '/'+lists[i]+'" onclick="removathat(\'' + value + '/'+lists[i]+'\')" class="delete collection button mini-button float-left"><span class="mif-cancel mif-lg"></span></button>  ' +
+                                        '       </div>' +
+                                        '   </div>' +
+                                        '</div>' +
+                                        '</div>';
+
+
+                            }
+                            if (type == 'documents') {
+                                html += '<div id="tile_'+json.result.list[i]['_id']['$id']+'" class="tile-small bg-darkCrimson float-left " ' +
+                                            'data-role="tile" onclick="editor_function(\''+value+'\',\''+json.result.list[i]['_id']['$id']+'\' , \''+i+'\' )" >' +
+                                        '   <div class="tile-content fg-white iconic bg-darkCrimson">' +
+                                        '<a href="#" class="fg-white padding5"  >#' + i + '</a>' +
+                                        '<span class="icon mif-file-code"></span>' +
+
+                                        '   </div>' +
+                                        '</div>';
+                                dialog = '<div data-role="dialog,draggable" id="dialog_'+json.result.list[i]['_id']['$id']+'" class="dialog bg-white padding10" data-close-button="true">'+
+                                        '<h1>Editor</h1>'+
+                                        '<div></div>'+
+                                        '<div id="myeditor_'+json.result.list[i]['_id']['$id']+'" class="bg-white" style="width: 400px;height: auto;min-height: 150px">'+
+                                        '</div>'+
+                                        '</div>';
+
+                            }
+
+
+                        }
+
+                    }
+                    else {
+
+                        if(type== 'databases'){
+                            if(lists[0].empty == false) {
+                                myclass = 'cyan'
+                            }
+                            else {
+                                myclass='yellow'
+                            }
+
+                            html += '<div class="tile bg-'+myclass+' float-left " data-role="tile">' +
+                                    '   <div class="tile-content slide-up fg-white iconic bg-'+myclass+'">' +
+                                    '       <div class="slide bg-'+myclass+'">' +
+                                    '           <span class="icon mif-folder-special"></span>' +
+                                    '           <span class="tile-badge bg-darkRed">' + json.result[lists[0]['name']].count + '</span>                                                                                                                 ' +
+                                    '           <span class="tile-label"><h6>' + lists[0]['name'] + '</h6></span>                                                                                                                                                                   ' +
+                                    '       </div>                                                                                                                                                                                                                      ' +
+                                    '   <div class="ribbed-green slide-over">                                                                                                                                                                                       ' +
+                                    '       <div class="margin20">                                                                                                                                                                                                      ' +
+                                    '           <button value="' + lists[i]['name']+'" onclick="explore(\'' + lists[i]['name']+'\')" class="explorer collection button mini-button float-left"><span class="mif-search mif-lg"></span></button>   ' +
+                                    '           <button value="' + lists[i]['name']+'" onclick="removathat(\'' + lists[i]['name']+'\')" class="delete collection button mini-button float-left"><span class="mif-cancel mif-lg"></span></button>  ' +
+                                    '       </div>' +
+                                    '   </div>' +
+                                    '</div>' +
+                                    '</div>';
+
+                        }
+
+                        if (type == 'collections') {
+
+
+
+                            html += '<div class="tile bg-darkCrimson float-left " data-role="tile">' +
+                                    '   <div class="tile-content slide-up fg-white iconic bg-darkCrimson">' +
+                                    '       <div class="slide bg-darkCrimson">' +
+                                    '           <span class="icon mif-folder-special"></span>' +
+                                    '           <span class="tile-badge bg-darkRed">' + json.result[lists].count + '</span>                                                                                                                 ' +
+                                    '           <span class="tile-label"><h6>' + lists + '</h6></span>                                                                                                                                                                   ' +
+                                    '       </div>                                                                                                                                                                                                                      ' +
+                                    '   <div class="ribbed-green slide-over">                                                                                                                                                                                       ' +
+                                    '       <div class="margin20">                                                                                                                                                                                                      ' +
+                                    '           <button value="' + value + '/'+lists+'" onclick="explore(\'' + value + '/'+lists+'\')" class="explorer collection button mini-button float-left"><span class="mif-search mif-lg"></span></button>   ' +
+                                    '           <button value="' + value + '/'+lists+'" onclick="removathat(\'' + value + '/'+lists+'\')" class="delete collection button mini-button float-left"><span class="mif-cancel mif-lg"></span></button>  ' +
+                                    '       </div>' +
+                                    '   </div>' +
+                                    '</div>' +
+                                    '</div>';
+
+
+                        }
+                        if (type == 'documents') {
+                            html += '<div class="tile-small bg-darkCrimson float-left " data-role="tile">' +
+                                    '   <div class="tile-content fg-white iconic bg-darkCrimson">' +
+                                    '#1' +
+                                    '<span class="icon mif-file-code"></span>' +
+
+                                    '   </div>' +
+                                    '</div>';
+
+
+                        }
+
+                    }
+                    html+='</div>';
+
+                    box.html(html);
+                    $('#temp').html(dialog);
+
+
+
+                },
+                error:function(x,y,z){
+
+                },
+                complete:function($r,$statut){
+
+                    side_database = $('#side_database');
+
+
+                    if(type=='collections'){
+
+                        menu =  '<li><a href="#" id="side_explorer" onclick="sidebar_function()" >'+
+                                '<span class="mif-folder-open next icon"></span>'+
+                                '</a></li>' +
+                                '<li><a href="#" id="side_database" onclick="sidebar_function(\''+value +'\')" >'+
+                        '<span class="mif-database next icon"></span>'+
+                        '</a></li>';
+
+                        lister = '<div id="lister-next" class="lister-next lister float-left margin5">'+
+                                '<span class="mif-chevron-thin-right" style="margin-right: 5px;"></span> <a class="fg-white" href="{{ path('explorer.index') }}/search/'+ value +'">' +
+                                '<span class="mif-database" style="margin-bottom:5px;"></span> '+value+
+                                '</a></div>';
+
+
+                    }
+                    if(type=='documents')
+                    {
+
+
+
+                        var mytitle = value.split('/');
+
+                        menu ='<li><a href="#" id="side_explorer" onclick="sidebar_function()" >'+
+                                '<span class="mif-folder-open next icon"></span>'+
+                                '</a></li>' +
+                                '<li><a href="#" id="side_database" onclick="sidebar_function(\''+mytitle[0] +'\')" >'+
+                                '<span class="mif-database next icon"></span>'+
+                                '</a></li>' +
+                                '<li><a href="#" class="sidebar-function" id="side_collection" onclick="sidebar_function(\''+value +'\')" >'+
+                                '<span class="mif-folder-special next icon"  ></span>'+
+                                '</a></li>';
+
+                        lister = '<div id="lister-next" class="lister-next lister float-left">'+
+                                '<span class="mif-chevron-thin-right" style="margin-right: 5px;"></span> ' +
+                                '</div>' +
+                                '<div id="lister-database" class="lister-next lister float-left">' +
+                                '<a class="fg-white" href="{{ path('explorer.index') }}/search/'+ mytitle[0] +'">' +
+
+                                '<span class="mif-database" style="margin-bottom:5px;"></span> '+mytitle[0]+
+                                '</a>' +
+                                '</div>'+
+                                '<div id="lister-next-next" class="lister-next lister float-left">'+
+                                '<span class="mif-chevron-thin-right" style="margin-right: 5px;"></span>' +
+                                '</div>' +
+                                '<div id="lister-collection" class="lister-next lister float-left">' +
+                                ' <a class="fg-white" href="{{ path('explorer.index') }}/search/'+ mytitle[1] +'">' +
+                                '   <span class="mif-folder-special" style="margin-bottom:5px;"></span> '+mytitle[1]+
+                                '</a>' +
+                                '</div>'
+                        ;
+
+
+                    }
+                    sidebar2.html(menu);
+                    divlister = $('#lister');
+                    divlister.nextAll('div').remove();
+                    divlister.after(lister);
+              //      .setAttribute('onclick',)
+
+                    div.removeClass('hidden')
+
+                }
+
+            })
+        }
+
+
+        $(function(){
+            $('.collapsed').on('click',function(){
+                alert();
+
+            })
+        })
+
+
+    </script>
+{% endblock %}

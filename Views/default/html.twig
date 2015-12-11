@@ -1,0 +1,42 @@
+
+<html>
+<head>
+    {% embed "default/head.twig" %}
+    {% endembed %}
+</head>
+
+<body>
+<div class="layout flex-grid" style="min-width: 440px;">
+    <div class="row cells12">
+        <div class="cell colspan12">
+            {% embed "default/header.twig" %}
+            {% endembed %}
+        </div>
+    </div>
+    <div class="row padding20 " style="height:200%">
+        <div id="content" class="cell auto-size ">
+            {% block content %}
+            {% endblock %}
+        </div>
+
+    </div>
+
+
+    <div class="row">
+        <div class="cell auto-size">
+            {% embed "default/footer.twig" %}
+            {% endembed %}
+        </div>
+    </div>
+</div>
+
+{% if user == 0 %}
+    {% embed "script/login_script.js.twig" %}
+    {% endembed %}
+{% endif %}
+</body>
+
+
+
+
+</html>

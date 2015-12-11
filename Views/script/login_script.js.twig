@@ -1,0 +1,52 @@
+<script>
+    logme = $('#logme');
+
+    $(function(){
+        logme.on('click',function(){
+                var username = $('#username').val();
+                var password = $('#password').val();
+                $.ajax({
+                        url:'{{ path('connect.index') }}',
+                        type:'POST',
+                        data : {username:username,password:password},
+                        success : function(code_html,statut){
+
+                                data = $.parseJSON(code_html);
+                                if(data['message']==true){
+                                        $.Notify({
+                                                caption: 'Login Success',
+                                                content: 'Wait for redirect',
+                                                type: 'success'
+                                                });
+                                        }
+                                        else{
+                                        $.Notify({
+                                                caption: 'Login Failed',
+                                                content: 'Try Again',
+                                                type: 'warning'
+                                                });
+                                        }
+
+                                },
+                        error : function(resultat, statut, erreur){
+                                $.Notify({
+                                        caption: 'Error !',
+                                        content: statut+' : '+erreur,
+                                        type: 'alert'
+                                        });
+                                },
+                        complete: function(resultat, statut){
+
+                                if(data['message']== true){
+                                        setTimeout(function(){window.location.href="{{ url('index.index') }}"},3000)
+                                        }
+
+                                }
+                        })
+
+                })
+
+        })
+
+
+</script>
